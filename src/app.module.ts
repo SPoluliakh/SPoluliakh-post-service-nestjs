@@ -5,16 +5,17 @@ import * as dotenv from 'dotenv';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TtnsModule } from './ttns/ttns.module';
+import { DepartmentsController } from './departments/departments.controller';
+import { DepartmentsModule } from './departments/departments.module';
 
 dotenv.config();
 const { DB_HOST } = process.env;
 console.log('DB_HOST:', DB_HOST);
 
 @Module({
-  imports: [TtnsModule, MongooseModule.forRoot(DB_HOST)],
+  imports: [TtnsModule, DepartmentsModule, MongooseModule.forRoot(DB_HOST)],
   controllers: [AppController],
   providers: [
-    AppService,
     AppService,
     {
       provide: 'AXIOS_INSTANCE',

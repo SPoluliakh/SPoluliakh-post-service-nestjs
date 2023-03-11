@@ -1,6 +1,5 @@
 import { Controller } from '@nestjs/common';
 import { Delete, Get, Param } from '@nestjs/common/decorators';
-
 import { Ttn } from './schemas/ttns.schema';
 import { TtnsService } from './ttns.service';
 
