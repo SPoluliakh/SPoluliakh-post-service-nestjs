@@ -1,3 +1,8 @@
 export class CreateTtnDto {
-  readonly ttn: string;
+  ttn: string;
+  status: string;
+  sender: string;
+  senderAdress: string;
+  recipient: string;
+  recipientAdress: string;
 }

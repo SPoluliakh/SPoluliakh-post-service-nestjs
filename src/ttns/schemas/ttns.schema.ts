@@ -7,6 +7,21 @@ export type TtnDocument = Ttn & Document;
 export class Ttn {
   @Prop()
   ttn: string;
+
+  @Prop()
+  status: string;
+
+  @Prop()
+  sender: string;
+
+  @Prop()
+  senderAdress: string;
+
+  @Prop()
+  recipient: string;
+
+  @Prop()
+  recipientAdress: string;
 }
 
 export const TtnSchema = SchemaFactory.createForClass(Ttn);

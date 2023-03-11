@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import axios from 'axios';
 import * as dotenv from 'dotenv';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -12,6 +13,15 @@ console.log('DB_HOST:', DB_HOST);
 @Module({
   imports: [TtnsModule, MongooseModule.forRoot(DB_HOST)],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    AppService,
+    {
+      provide: 'AXIOS_INSTANCE',
+      useValue: axios.create({
+        baseURL: 'https://api.novaposhta.ua/v2.0/json/',
+      }),
+    },
+  ],
 })
 export class AppModule {}
