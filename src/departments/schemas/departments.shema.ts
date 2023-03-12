@@ -6,16 +6,23 @@ export type DepartmentDocument = Department & Document;
 @Schema({ versionKey: false, timestamps: true })
 export class Department {
   @Prop()
-  cityName: string;
+  CityDescription: string;
 
   @Prop()
-  description: string;
+  Description: string;
+
+  @Prop()
+  id: string;
 
   @Prop({ type: Object })
-  dimensions: { Height: string; Length: string; Width: string };
+  ReceivingLimitationsOnDimensions: {
+    Height: string;
+    Length: string;
+    Width: string;
+  };
 
   @Prop({ type: Object })
-  schedule: {
+  Schedule: {
     Friday: string;
     Monday: string;
     Saturday: string;

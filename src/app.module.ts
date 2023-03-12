@@ -5,7 +5,6 @@ import * as dotenv from 'dotenv';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TtnsModule } from './ttns/ttns.module';
-import { DepartmentsController } from './departments/departments.controller';
 import { DepartmentsModule } from './departments/departments.module';
 
 dotenv.config();

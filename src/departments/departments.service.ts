@@ -1,9 +1,8 @@
 import { Model } from 'mongoose';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import axios from 'axios';
 import { Department, DepartmentDocument } from './schemas/departments.shema';
-import { GetDepartmentDto } from './dto/get-department.dto';
+import { getNpData } from '../helpers/departments.axios';
 
 @Injectable()
 export class DepartmentsService {
@@ -12,71 +11,55 @@ export class DepartmentsService {
     private departmentModel: Model<DepartmentDocument>,
   ) {}
 
-  async getDepartment(
-    body: GetDepartmentDto,
-    query: { page: number; limit: number },
-  ): Promise<Department[]> {
+  async getDepartment(query: {
+    page: number;
+    limit: number;
+    cityName: string;
+    id: string;
+  }): Promise<{ data: Department[]; info: { totalCount: number } }> {
     try {
-      const { cityName = '', id = '' } = body;
-
-      const { page = 1, limit = 20 } = query;
+      const { page = 1, limit = 20, cityName, id } = query;
       const skip: number = (page - 1) * limit;
 
-      let findParams: unknown;
+      //Since a free database is used for educational purposes,
+      // in order not to load it with large calculations, we save it only
+      // if the search occurs by the city name and branch number at the same time,
+      // if necessary, we can modify the code to save different options or all existing branches.
 
       if (cityName !== '' && id !== '') {
-        findParams = { cityName, id };
-      } else if (cityName !== '' && id === '') {
-        findParams = { cityName };
-      } else if (cityName === '' && id !== '') {
-        findParams = { id };
-      } else if (cityName === '' && id === '') {
-        const npData = await axios.post(
-          `https://api.novaposhta.ua/v2.0/json/`,
+        const isInDb = await this.departmentModel.find(
+          { CityDescription: cityName.toUpperCase(), id },
+          '-createdAt -updatedAt',
           {
-            modelName: 'Address',
-            calledMethod: 'getWarehouses',
-            methodProperties: {
-              CityName: cityName,
-              Page: page.toString(),
-              Limit: '20',
-              WarehouseId: id,
-            },
+            skip,
+            limit: +limit,
           },
         );
-        return npData.data;
+        if (isInDb.length) {
+          return { data: isInDb, info: { totalCount: isInDb.length } };
+        }
+
+        const data = await getNpData(cityName, page.toString(), id);
+
+        if (data.info.totalCount !== 0) {
+          data.data.forEach(async (element: any) => {
+            const newTtn = new this.departmentModel({
+              CityDescription: element.CityDescription.toUpperCase(),
+              id: element.Number,
+              Description: element.Description,
+              ReceivingLimitationsOnDimensions:
+                element.SendingLimitationsOnDimensions,
+              Schedule: element.Schedule,
+            });
+            await newTtn.save();
+          });
+        }
+
+        return data;
       }
 
-      //   console.log('--------------', findParams);
-      const isInDb = await this.departmentModel
-        .find({ findParams }, '-createdAt -updatedAt', {
-          skip,
-          limit: +limit,
-        })
-        .exec();
-      if (isInDb.length) {
-        return isInDb;
-      }
-
-      const npData = await axios.post(`https://api.novaposhta.ua/v2.0/json/`, {
-        modelName: 'Address',
-        calledMethod: 'getWarehouses',
-        methodProperties: {
-          CityName: cityName,
-          Page: page.toString(),
-          Limit: '20',
-          WarehouseId: id,
-        },
-      });
-      console.log('-------------', npData.data);
-      //   const newTtn = new this.departmentModel({
-      //     cityName: npData.data.data[0].Number,
-      //     description: npData.data.data[0].Status,
-
-      //     dimensions: npData.data.data[0].WarehouseSender,
-      //     schedule: npData.data.data[0].WarehouseSenderAddress,
-      //   });
-      //   return await newTtn.save();
+      const data = await getNpData(cityName, page.toString(), id);
+      return data;
     } catch (err) {
       throw err;
     }
